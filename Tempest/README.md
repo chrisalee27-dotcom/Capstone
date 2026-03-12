@@ -82,10 +82,10 @@ Wireshark analysis identified HTTP requests to malicious infrastructure.
 
 Evidence:
 
-* [Wireshark HTTP Traffic Filter](Screenshots/14_wireshark_http_filter.png)
-* [Phishing Server Index Request](Screenshots/15_phishteam_index_request.png)
-* [TCP Stream HTTP Traffic](Screenshots/16_tcp_stream_http_traffic.png)
-* [Wireshark HTTP Request Filter](Screenshots/17_wireshark_http_request_filter.png)
+* [Wireshark HTTP Traffic Filter](Screenshots/14_wireshark_http_filter.png.png)
+* [Phishing Server Index Request](Screenshots/15_phishteam_index_request.png.png)
+* [TCP Stream HTTP Traffic](Screenshots/16_tcp_stream_http_traffic.png.png)
+* [Wireshark HTTP Request Filter](Screenshots/17_wireshark_http_request_filter.png.png)
 * [User Agent Investigation](Screenshots/18_wireshark_http_user_agent_filter.png.png)
 
 Additional command and control communication was discovered.
@@ -102,7 +102,7 @@ The attacker enumerated network services using system tools.
 
 Evidence:
 
-* [Netstat Listening Ports](Screenshots/20_netstat_listening_ports.png)
+* [Netstat Listening Ports](Screenshots/20_netstat_listening_ports.png.png)
 * [WinRM Port 5985 Listening](Screenshots/21_winrm_port_5985_listening.png.png)
 
 ---
