@@ -1,4 +1,5 @@
 # Tempest Incident Investigation
+<img width="1694" height="435" alt="Tempest" src="https://github.com/user-attachments/assets/5df30a08-77e2-4fa8-8ba4-7ee6818a2201" />
 
 This investigation analyzes a simulated compromise of a Windows workstation.
 The attacker gained access through a **malicious document**, established **command and control**, escalated privileges, and created **persistence mechanisms**.
