@@ -1,20 +1,69 @@
-# SOC Level 1 Capstone Investigations
+# SOC Level 1 Capstone – Incident Investigations
 
-This repository documents investigations completed during the SOC Level 1 Capstone.
+This repository contains incident response investigations completed during the **TryHackMe SOC Level 1 Capstone**.
 
-Each folder contains evidence, screenshots, and analysis of attacker activity.
+Each investigation simulates a real-world security incident and requires analysis of:
 
-## Rooms Completed
+* Network traffic (PCAP)
+* Windows Event Logs
+* Sysmon logs
+* Malware artifacts
+* Command execution
+* Persistence mechanisms
 
-- Tempest
-- (Room 2)
-- (Room 3)
+The goal is to practice the workflow used by **SOC Analysts and Incident Responders**.
+
+---
+
+## 🔎 Investigations
+
+| Investigation        | Description                                                                                                                   |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| **Tempest Incident** | Investigation of a phishing-based compromise involving malicious documents, C2 traffic, privilege escalation, and persistence |
+
+---
 
 ## Skills Demonstrated
 
-- Network traffic analysis
-- Endpoint log investigation
-- Windows event analysis
-- Malware analysis
-- Threat intelligence pivoting
-- MITRE ATT&CK mapping
+* Network traffic analysis (Wireshark)
+* Windows log analysis
+* Sysmon investigation
+* Malware identification
+* Command & Control detection
+* Privilege escalation analysis
+* Persistence detection
+* MITRE ATT&CK mapping
+
+---
+
+## Tools Used
+
+* Wireshark
+* Event Viewer
+* Sysmon
+* VirusTotal
+* CyberChef
+* Windows Command Line
+* PowerShell
+
+---
+
+## Repository Structure
+
+```
+SOC-Level-1-Capstone
+│
+├── Tempest
+│   ├── README.md
+│   └── Screenshots
+│
+└── README.md
+```
+
+---
+
+## Author
+
+Christopher Lee
+Cybersecurity Student – Purdue Global
+Aspiring SOC Analyst
