@@ -5,7 +5,18 @@ This investigation analyzes a simulated compromise of a Windows workstation.
 The attacker gained access through a **malicious document**, established **command and control**, escalated privileges, and created **persistence mechanisms**.
 
 ---
+## Attack Timeline
 
+1. Victim downloads malicious document `free_magicules.doc`
+2. Microsoft Word executes the payload
+3. Follina exploit launches `msdt.exe`
+4. PowerShell downloads `first.exe`
+5. Malware connects to C2 server `167.71.199.191`
+6. Attacker deploys Chisel reverse proxy
+7. Privilege escalation via PrintSpoofer
+8. New user `shion` created
+9. User added to Administrators group
+10. Persistence established via Windows service
 # Evidence Integrity Verification
 
 Before beginning analysis, the integrity of the provided evidence files was verified using SHA256 hashing.
@@ -187,7 +198,28 @@ sc.exe \\TEMPEST create TempestUpdate2 binpath= C:\ProgramData\final.exe start= 
 This ensures the malware executes automatically when the system boots.
 
 ---
+## MITRE ATT&CK Techniques
 
+| Technique | Description |
+|-----------|-------------|
+| T1566 | Phishing |
+| T1204 | User Execution |
+| T1059 | Command Execution |
+| T1105 | Ingress Tool Transfer |
+| T1572 | Protocol Tunneling |
+| T1134 | Access Token Manipulation |
+| T1543 | Create or Modify System Process |
+| T1078 | Valid Accounts |
+
+## Detection Opportunities
+
+Security teams could detect this attack through:
+
+- Monitoring PowerShell downloads using `certutil`
+- Alerting on unusual `msdt.exe` execution
+- Detecting outbound traffic to unknown domains
+- Monitoring creation of new administrator accounts
+- Alerting on Windows service creation events
 # Conclusion
 
 The attacker successfully:
