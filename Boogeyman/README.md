@@ -2,228 +2,225 @@
 
 ## Overview
 
-This investigation analyzes a simulated security incident involving a phishing email that led to system compromise, attacker enumeration activity, and data exfiltration. The objective was to analyze provided forensic artifacts and reconstruct the attacker’s actions.
+This investigation analyzes a simulated security incident involving a phishing email that led to system compromise, attacker enumeration activity, and data exfiltration.
 
-Artifacts analyzed during this investigation included:
+The objective of the investigation was to analyze forensic artifacts and reconstruct the attacker’s actions from initial access through data exfiltration.
+
+Artifacts analyzed during this investigation:
 
 - Email artifact (`dump.eml`)
 - Network capture (`capture.pcapng`)
 - Windows Event Logs (`powershell.evtx`)
 - Parsed PowerShell logs (`powershell.json`)
 
-Through analysis of these artifacts, the attacker’s activity was reconstructed, including:
-
-- Initial phishing delivery
-- PowerShell execution
-- Tool download and system enumeration
-- Access to sensitive user data
-- Data exfiltration using DNS tunneling
-
----
-Attack Timeline
-
-09:25 — Phishing email delivered
-09:26 — Malicious LNK executed
-09:27 — PowerShell payload downloaded
-09:28 — Seatbelt enumeration executed
-09:30 — Sticky Notes database accessed
-09:31 — KeePass database located
-09:33 — Data exfiltration via DNS
+The investigation revealed that the attacker used a phishing email containing a malicious shortcut file which executed PowerShell commands to download attacker tools, enumerate the system, and exfiltrate sensitive data using DNS tunneling.
 
 ---
 
 # 1. Phishing Email Analysis
 
-The investigation began by analyzing the suspicious email contained in `dump.eml`.
+The investigation began with analysis of the suspicious email contained in the artifact `dump.eml`.
 
-The email originated from a suspicious domain and contained a password-protected attachment designed to bypass email security filters.
+The email was sent from a suspicious external domain and contained a password-protected attachment designed to bypass email scanning systems.
 
-### Email Sender
+Evidence:
 
-![Email Sender](Screenshots/01_email_sender.png)
+- [01_email_sender](Screenshots/01_email_sender.png)
+- [02_email_recipient](Screenshots/02_email_recipient.png)
 
-### Email Recipient
+Further header analysis revealed that the DKIM signature referenced a third-party domain.
 
-![Email Recipient](Screenshots/02_email_recipient.png)
+Evidence:
 
-### DKIM Signature Analysis
-
-The email header revealed that the DKIM signature originated from a third-party domain.
-
-![DKIM Signature](Screenshots/03_DKIM_Signature_3rd_Party.png)
+- [03_DKIM_Signature_3rd_Party](Screenshots/03_DKIM_Signature_3rd_Party.png)
 
 ---
 
 # 2. Password-Protected Attachment
 
-The phishing email contained a password-protected attachment designed to evade automated scanning systems.
+The phishing email included a password-protected archive attachment.
 
-The password provided in the email allowed extraction of the malicious archive.
+Password protection is a common tactic used by attackers to bypass automated email security scanners.
 
-![Password Protected Attachment](Screenshots/04_Password_Encoded_Attachment.png)
+Evidence:
+
+- [04_Password_Encoded_Attachment](Screenshots/04_Password_Encoded_Attachment.png)
+
+After extracting the archive, a malicious Windows shortcut file was discovered.
 
 ---
 
-# 3. Malicious LNK File
+# 3. Malicious Shortcut File Analysis
 
-The extracted attachment contained a malicious `.lnk` file. Using `lnkparse`, the shortcut file was analyzed to determine the command executed by the attacker.
+The extracted attachment contained a malicious `.lnk` file.  
+Using the `lnkparse` tool, the shortcut file was analyzed to determine its behavior.
 
-![LNK File Analysis](Screenshots/05_lnkparse_Invoice.png)
+Evidence:
 
-The analysis revealed that the shortcut executed a PowerShell command to download additional tools from attacker-controlled infrastructure.
+- [05_lnkparse_Invoice](Screenshots/05_lnkparse_Invoice.png)
+
+Analysis revealed the shortcut executed a PowerShell command designed to download additional attacker tools.
 
 ---
 
 # 4. PowerShell Activity Analysis
 
-PowerShell logs were parsed using `jq` to analyze executed commands.
+PowerShell logs were parsed using `jq` to review executed commands.
 
-Example command used:
+Example command used during analysis:
 
 ```bash
 cat powershell.json | jq -r '.ScriptBlockText'
 ```
 
-The logs revealed commands used to download enumeration tools and execute system reconnaissance.
+Evidence:
 
-![PowerShell Logs](Screenshots/07_cat_powershell_json_jq.png)
+- [07_cat_powershell_json_jq](Screenshots/07_cat_powershell_json_jq.png)
+
+The logs revealed commands used to download attacker tools and perform system enumeration.
 
 ---
 
 # 5. Command and Control Infrastructure
 
-Analysis of the PowerShell logs revealed connections to attacker-controlled domains used for hosting malicious payloads and C2 communication.
+PowerShell logs revealed connections to attacker-controlled infrastructure used for hosting malicious payloads.
 
-![C2 Domains](Screenshots/08_C2_domains.png)
-
-The attacker used:
+Identified domains:
 
 ```
 files.bpackaging.xyz
 cdn.bpackaging.xyz
 ```
 
+Evidence:
+
+- [08_C2_domains](Screenshots/08_C2_domains.png)
+
 ---
 
 # 6. Enumeration Tool Download
 
-The attacker downloaded an enumeration tool used to gather system information.
+The attacker downloaded the **Seatbelt** enumeration tool from the malicious infrastructure.
 
-![Enumeration Tool](Screenshots/09_enumeration_tool.png)
+Seatbelt is a widely known Windows enumeration tool used by attackers to collect system information.
 
-The enumeration tool identified during the investigation was **Seatbelt**, a well-known Windows security assessment tool.
+Evidence:
+
+- [09_enumeration_tool](Screenshots/09_enumeration_tool.png)
 
 ---
 
-# 7. Accessing Sensitive Files
+# 7. Sensitive File Access
 
-Further analysis revealed the attacker accessed a local database used by Microsoft Sticky Notes.
+The attacker used the downloaded tool `sq3.exe` to access a local database belonging to Microsoft Sticky Notes.
 
-![Accessing Sensitive File](Screenshots/10_accesses_sq3.exe.png)
-
-The accessed file path was:
+File accessed:
 
 ```
 C:\Users\j.westcott\AppData\Local\Packages\Microsoft.MicrosoftStickyNotes_8wekyb3d8bbwe\LocalState\plum.sqlite
 ```
 
+Evidence:
+
+- [10_accesses_sq3.exe](Screenshots/10_accesses_sq3.exe.png)
+
 ---
 
 # 8. Software Identification
 
-The SQLite database accessed by the attacker belongs to Microsoft Sticky Notes.
+The accessed database was confirmed to belong to **Microsoft Sticky Notes**, which stores user notes locally in a SQLite database.
 
-![Sticky Notes Database](Screenshots/11_Q3_software.png)
+Evidence:
 
----
+- [11_Q3_software](Screenshots/11_Q3_software.png)
 
-# 9. Extracted Sensitive File
-
-Analysis later revealed that the attacker accessed a KeePass database file containing sensitive credentials.
-
-![Extracted File](Screenshots/12_extracted_file.png)
+Users often store sensitive information in Sticky Notes, making it a valuable target for attackers.
 
 ---
 
-# 10. KeePass Credential Database
+# 9. Credential Database Discovery
 
-The stolen file was identified as a KeePass credential database.
+Further investigation revealed that a KeePass credential database was also accessed during the attack.
 
-![KeePass Database](Screenshots/13_KeePass.png)
+Evidence:
 
-KeePass databases typically store sensitive credentials including passwords and financial information.
+- [12_extracted_file](Screenshots/12_extracted_file.png)
+- [13_KeePass](Screenshots/13_KeePass.png)
+
+KeePass databases often store highly sensitive information such as passwords and financial data.
 
 ---
 
-# 11. DNS Data Exfiltration
+# 10. DNS Data Exfiltration
 
-Network traffic analysis revealed that the attacker exfiltrated data using DNS tunneling.
+Network traffic analysis revealed that the attacker exfiltrated data using **DNS tunneling**.
 
 Encoded data fragments were embedded within DNS query names.
 
-![DNS Encoding](Screenshots/14_hex_encoding.png)
+Evidence:
+
+- [14_hex_encoding](Screenshots/14_hex_encoding.png)
+- [15_exfiltration_ns_lookup](Screenshots/15_exfiltration_ns_lookup.png)
 
 ---
 
-# 12. DNS Lookup During Exfiltration
+# 11. Payload Hosting Infrastructure
 
-DNS queries were observed containing encoded fragments of the stolen data.
+Network traffic analysis revealed that the attacker hosted payloads using a Python HTTP server.
 
-![DNS Lookup](Screenshots/15_exfiltration_ns_lookup.png)
+Evidence:
 
----
-
-# 13. Payload Hosting Infrastructure
-
-Network traffic analysis revealed that the attacker hosted malicious payloads using a Python HTTP server.
-
-![Payload Server](Screenshots/16_software_host_file_payload_py.png)
+- [16_software_host_file_payload_py](Screenshots/16_software_host_file_payload_py.png)
 
 ---
 
-# 14. HTTP Command and Control
+# 12. HTTP Command and Control
 
-The compromised system transmitted command results back to the attacker via HTTP POST requests.
+The compromised system transmitted command results back to the attacker using HTTP POST requests.
 
-Wireshark filtering:
+Wireshark filter used:
 
 ```bash
 http.request.method == "POST"
 ```
 
-![HTTP POST C2](Screenshots/17_HTTP_post_C2.png)
+Evidence:
+
+- [17_HTTP_post_C2](Screenshots/17_HTTP_post_C2.png)
 
 ---
 
-# 15. DNS Exfiltration Protocol
+# 13. DNS Exfiltration Protocol
 
-Further network analysis confirmed that the attacker used DNS to exfiltrate the stolen data.
+Further analysis confirmed that DNS was used as the protocol for data exfiltration.
 
-![DNS Exfiltration](Screenshots/18_dns_exfiltration_protocol.png)
+Evidence:
 
----
-
-# 16. Recovering the Exfiltrated Data
-
-The DNS query fragments were extracted from the network capture and reconstructed.
-
-![Encoded Password Discovery](Screenshots/19_Finding_Password_encoded.png)
-
-The encoded password was then decoded.
-
-![Password Decoding](Screenshots/20_Decoding_Password.png)
+- [18_dns_exfiltration_protocol](Screenshots/18_dns_exfiltration_protocol.png)
 
 ---
 
-# 17. Sensitive Data Discovery
+# 14. Recovering the Exfiltrated Data
 
-After reconstructing and opening the KeePass database, sensitive information was recovered.
+Encoded DNS fragments were extracted and reconstructed to recover the stolen data.
 
-![Credit Card Discovery](Screenshots/21_finding_credit_card_nuber_part1.png)
+Evidence:
 
-Additional sensitive information was found inside the credential database.
+- [19_Finding_Password_encoded](Screenshots/19_Finding_Password_encoded.png)
+- [20_Decoding_Password](Screenshots/20_Decoding_Password.png)
 
-![Credit Card Discovery Continued](Screenshots/22_finding_credit_card_nuber_part2.png)
+---
+
+# 15. Sensitive Data Discovery
+
+After reconstructing the stolen KeePass database, sensitive information was recovered.
+
+Evidence:
+
+- [21_finding_credit_card_nuber_part1](Screenshots/21_finding_credit_card_nuber_part1.png)
+- [22_finding_credit_card_nuber_part2](Screenshots/22_finding_credit_card_nuber_part2.png)
+
+The database contained a stored credit card number, confirming successful data exfiltration.
 
 ---
 
@@ -232,7 +229,7 @@ Additional sensitive information was found inside the credential database.
 ```
 Phishing Email
       ↓
-Password Protected Attachment
+Password-Protected Attachment
       ↓
 Malicious LNK Execution
       ↓
@@ -242,7 +239,7 @@ Tool Download (Seatbelt)
       ↓
 Sensitive File Access
       ↓
-KeePass Credential Theft
+KeePass Credential Database Theft
       ↓
 DNS Tunneling Exfiltration
 ```
@@ -263,27 +260,17 @@ C2 Infrastructure | `files.bpackaging.xyz`, `cdn.bpackaging.xyz` |
 
 ---
 
-# Lessons Learned
-
-This investigation highlights several common attacker techniques:
-
-- Use of password-protected attachments to evade email security scanning
-- Execution of malicious PowerShell commands via shortcut files
-- Use of system enumeration tools during post-exploitation
-- DNS tunneling used for stealthy data exfiltration
-- Targeting credential databases containing sensitive user data
-
-Organizations should monitor for:
-
-- Suspicious PowerShell execution
-- DNS queries containing encoded data
-- Unexpected outbound connections
-- Access to sensitive credential stores
-
----
-
 # Conclusion
 
-This investigation successfully reconstructed the attacker’s actions from initial compromise through data exfiltration. The attacker leveraged common post-exploitation techniques and used DNS tunneling to stealthily exfiltrate sensitive information.
+The investigation successfully reconstructed the attacker’s activity from initial phishing email delivery through system compromise and data exfiltration.
 
-The analysis demonstrates the importance of monitoring PowerShell activity, network traffic patterns, and DNS anomalies to detect similar attacks in real-world environments.
+The attacker leveraged common post-exploitation techniques including PowerShell payload execution, system enumeration, and DNS tunneling to exfiltrate sensitive data.
+
+This investigation highlights the importance of monitoring:
+
+- Suspicious PowerShell activity
+- DNS traffic anomalies
+- Unexpected outbound network connections
+- Access to sensitive credential databases
+
+Proper monitoring and detection controls can significantly reduce the impact of similar attacks in real-world environments.
