@@ -20,6 +20,17 @@ Through analysis of these artifacts, the attacker’s activity was reconstructed
 - Data exfiltration using DNS tunneling
 
 ---
+Attack Timeline
+
+09:25 — Phishing email delivered
+09:26 — Malicious LNK executed
+09:27 — PowerShell payload downloaded
+09:28 — Seatbelt enumeration executed
+09:30 — Sticky Notes database accessed
+09:31 — KeePass database located
+09:33 — Data exfiltration via DNS
+
+---
 
 # 1. Phishing Email Analysis
 
