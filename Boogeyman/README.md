@@ -16,8 +16,40 @@ Artifacts analyzed during this investigation:
 The investigation revealed that the attacker used a phishing email containing a malicious shortcut file which executed PowerShell commands to download attacker tools, enumerate the system, and exfiltrate sensitive data using DNS tunneling.
 
 ---
+## Attack Timeline
 
+1. Phishing email delivered to victim
+2. Password-protected archive opened
+3. Malicious LNK executed
+4. PowerShell payload downloaded
+5. Seatbelt enumeration executed
+6. Sensitive database accessed
+7. KeePass credential database discovered
+8. Data exfiltration via DNS tunneling
 # 1. Phishing Email Analysis
+
+---
+## Tools Used
+
+- Thunderbird (Email analysis)
+- LNKParse3 (Shortcut analysis)
+- jq (PowerShell log parsing)
+- Wireshark / Tshark (Network analysis)
+- CyberChef (Data decoding)
+- KeePassXC (Credential database analysis)
+
+---
+
+## MITRE ATT&CK Techniques Observed
+
+| Technique | ID |
+|----------|----|
+Phishing | T1566 |
+Command Execution via PowerShell | T1059 |
+System Enumeration | T1082 |
+Data Exfiltration Over DNS | T1048 |
+
+---
 
 The investigation began with analysis of the suspicious email contained in the artifact `dump.eml`.
 
