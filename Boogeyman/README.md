@@ -1,4 +1,4 @@
-![Screenshot](Screenshots/Thumbnail.png)
+![Screenshot](Screenshots/Thumbnail1.png)
 # Boogeyman DFIR Investigation
 
 ## Overview
