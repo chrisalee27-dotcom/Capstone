@@ -1,4 +1,4 @@
-
+![Screenshot](Screenshots/Thumbnail.png)
 
 # Boogeyman 3 – SOC Investigation
 
