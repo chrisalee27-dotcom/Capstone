@@ -2,35 +2,33 @@
 
 ## Scenario
 
-The Boogeyman threat actor returns with a more advanced attack chain. In this investigation, we analyze telemetry from a compromised workstation to identify how the attacker executed malware, established persistence, and attempted lateral movement across the network.
+The Boogeyman threat actor returns with a more advanced attack chain. In this investigation, we analyze telemetry from a compromised workstation to determine how the attacker executed malware, established persistence, and attempted lateral movement within the environment.
 
-Using Elastic SIEM logs collected through Winlogbeat, we reconstruct the attacker’s actions and determine the techniques used to maintain access and pivot through the environment.
+Using **Elastic SIEM logs from Winlogbeat**, we reconstruct the attacker’s actions and identify the techniques used during the attack.
 
 ---
 
 # Tools Used
 
-* Elastic SIEM (Kibana)
-* Winlogbeat Windows Event Logs
-* Process Command-Line Analysis
-* Network Connection Analysis
-* Threat Hunting Methodology
+Elastic SIEM (Kibana)
+Winlogbeat Windows Event Logs
+Process Command-Line Analysis
+Network Connection Analysis
+Threat Hunting Techniques
 
 ---
 
 # Attack Chain Summary
 
-| Stage                 | Description                                       |
-| --------------------- | ------------------------------------------------- |
-| Initial Execution     | Stage 1 malware executed on compromised host      |
-| File Implantation     | Malware copied malicious file to another location |
-| Execution             | Implanted file executed with Windows binaries     |
-| Persistence           | Scheduled task created for persistence            |
-| C2 Communication      | Malware attempted outbound connection             |
-| Privilege Escalation  | Attacker executed a UAC bypass                    |
-| Credential Access     | Account data was dumped                           |
-| Lateral Movement      | Attacker attempted pivot to another machine       |
-| Ransomware Deployment | Malicious payload downloaded                      |
+Initial malware execution
+File implantation to a secondary location
+Execution of implanted payload
+Scheduled task persistence
+Command and control communication
+Privilege escalation through UAC bypass
+Credential harvesting
+Lateral movement across machines
+Ransomware download and deployment
 
 ---
 
@@ -40,25 +38,31 @@ Using Elastic SIEM logs collected through Winlogbeat, we reconstruct the attacke
 
 ## 1. Parent Process – Stage 1 Payload
 
-The investigation begins by identifying the process responsible for launching the initial Stage 1 payload.
+The investigation begins by identifying the process responsible for executing the initial Stage 1 payload.
 
-![Screenshot](Screenshots/01_Parent_Process_ID_Stage1_Payload.png)
+Screenshot:
+
+[01_Parent_Process_ID_Stage1_Payload](Screenshots/01_Parent_Process_ID_Stage1_Payload.png)
 
 ---
 
 ## 2. Command Line Used to Copy Malware
 
-The Stage 1 payload attempts to implant a malicious file to another location on the host system using Windows utilities.
+The Stage 1 payload attempts to copy a malicious file to another location on the compromised machine.
 
-![Screenshot](Screenshots/02_Command_Line_Value_Copy_Location.png)
+Screenshot:
+
+[02_Command_Line_Value_Copy_Location](Screenshots/02_Command_Line_Value_Copy_Location.png)
 
 ---
 
 ## 3. Implanted Code Execution Command
 
-After copying the file, the attacker executes the implanted payload. Process command-line logs reveal how the code was executed.
+After copying the file, the attacker executes the implanted payload using Windows binaries.
 
-![Screenshot](Screenshots/03_Full_Command_Line_Implanted_Code_Stage1.png)
+Screenshot:
+
+[03_Full_Command_Line_Implanted_Code_Stage1](Screenshots/03_Full_Command_Line_Implanted_Code_Stage1.png)
 
 ---
 
@@ -66,112 +70,136 @@ After copying the file, the attacker executes the implanted payload. Process com
 
 To maintain persistence, the attacker creates a scheduled task that executes the malicious PowerShell payload.
 
-![Screenshot](Screenshots/04_Scheduled_Task_Name.png)
+Screenshot:
+
+[04_Scheduled_Task_Name](Screenshots/04_Scheduled_Task_Name.png)
 
 ---
 
 ## 5. Command and Control Connection
 
-Following execution of the implanted file, the compromised host attempts to communicate with an external command and control server.
+Following execution of the implanted payload, the compromised host attempts to communicate with an external command and control server.
 
-![Screenshot](Screenshots/05_IP_PORT_C2_Connection.png)
+Screenshot:
+
+[05_IP_PORT_C2_Connection](Screenshots/05_IP_PORT_C2_Connection.png)
 
 ---
 
 ## 6. UAC Bypass Process
 
-Because the compromised user has administrator privileges, the attacker attempts to escalate privileges using a UAC bypass technique.
+The attacker discovers the compromised account has administrative privileges and attempts to bypass User Account Control.
 
-![Screenshot](Screenshots/06_UAC_Bypass_Process.png)
+Screenshot:
+
+[06_UAC_Bypass_Process](Screenshots/06_UAC_Bypass_Process.png)
 
 ---
 
 ## 7. GitHub Link Used by Attacker
 
-During the investigation we identify a GitHub link used by the attacker to retrieve additional scripts or payloads.
+Logs reveal a GitHub link used by the attacker to retrieve additional payloads.
 
-![Screenshot](Screenshots/07_GitHub_Link.png)
+Screenshot:
+
+[07_GitHub_Link](Screenshots/07_GitHub_Link.png)
 
 ---
 
 ## 8. Username Hash Artifact
 
-Credential artifacts appear within the logs, revealing hashed account data associated with attacker activity.
+Credential artifacts appear in the logs showing hashed account information.
 
-![Screenshot](Screenshots/08_Username_Hash.png)
+Screenshot:
+
+[08_Username_Hash](Screenshots/08_Username_Hash.png)
 
 ---
 
 ## 9. Remote Share Access
 
-Evidence shows the attacker accessed a remote network share, indicating potential lateral movement activity.
+The attacker accesses a remote share as part of lateral movement activity.
 
-![Screenshot](Screenshots/09_Remote_Share_File.png)
+Screenshot:
+
+[09_Remote_Share_File](Screenshots/09_Remote_Share_File.png)
 
 ---
 
 ## 10. Attacker Created Credentials
 
-Logs reveal the attacker created a new username and password on the system.
+Evidence shows the attacker created a new username and password on the system.
 
-![Screenshot](Screenshots/10_Attacker_New_Username_Password.png)
+Screenshot:
+
+[10_Attacker_New_Username_Password](Screenshots/10_Attacker_New_Username_Password.png)
 
 ---
 
 ## 11. Target Machine Hostname
 
-Network activity reveals the hostname of the system targeted during lateral movement.
+Analysis reveals the hostname of the machine targeted during lateral movement.
 
-![Screenshot](Screenshots/11_Hostname_Attackers_Target_Machine.png)
+Screenshot:
+
+[11_Hostname_Attackers_Target_Machine](Screenshots/11_Hostname_Attackers_Target_Machine.png)
 
 ---
 
-## 12. Parent Command Used for Lateral Movement
+## 12. Parent Command – Lateral Movement
 
-Further command-line analysis shows the command used by the attacker to move laterally across machines.
+Further command-line analysis shows how the attacker initiated lateral movement.
 
-![Screenshot](Screenshots/12_Process_Parent_Command_Lateral_Movement.png)
+Screenshot:
+
+[12_Process_Parent_Command_Lateral_Movement](Screenshots/12_Process_Parent_Command_Lateral_Movement.png)
 
 ---
 
 ## 13. Username Hash – Second Machine
 
-Credential artifacts were also discovered on a second machine involved in the attack.
+Credential artifacts were also discovered on a second compromised machine.
 
-![Screenshot](Screenshots/13_Username_Hash_Second_Machine.png)
+Screenshot:
+
+[13_Username_Hash_Second_Machine](Screenshots/13_Username_Hash_Second_Machine.png)
 
 ---
 
 ## 14. Account Dumped by Attacker
 
-Evidence indicates the attacker attempted to dump account information from the compromised host.
+Logs indicate the attacker attempted to dump account credentials.
 
-![Screenshot](Screenshots/14_Account_Attacker_Dumped.png)
+Screenshot:
+
+[14_Account_Attacker_Dumped](Screenshots/14_Account_Attacker_Dumped.png)
 
 ---
 
 ## 15. Ransomware Download Link
 
-Finally, the investigation reveals the link used to download ransomware onto the compromised machine.
+The final stage of the attack reveals the link used to download ransomware onto the compromised system.
 
-![Screenshot](Screenshots/15_Link_Used_Download_Ransomware.png)
+Screenshot:
+
+[15_Link_Used_Download_Ransomware](Screenshots/15_Link_Used_Download_Ransomware.png)
 
 ---
 
 # Key Takeaways
 
-This investigation demonstrates several common attacker techniques used during multi-stage compromises:
+This investigation highlights several techniques commonly used by attackers during multi-stage compromises:
 
-* Malware execution using legitimate Windows binaries
-* File implantation and execution
-* Scheduled task persistence
-* Command and Control communication
-* Privilege escalation via UAC bypass
-* Credential dumping
-* Lateral movement across hosts
-* Ransomware deployment
+Use of legitimate Windows utilities for malware execution
+File implantation and execution
+Scheduled task persistence mechanisms
+Command and control communication with external servers
+Privilege escalation through UAC bypass techniques
+Credential dumping
+Lateral movement between systems
+Ransomware deployment
 
-Understanding these behaviors allows SOC analysts to detect similar attack chains and respond more effectively to emerging threats.
+Understanding these behaviors allows SOC analysts to detect and respond to similar threats more effectively.
 
 ---
 
@@ -180,7 +208,7 @@ Understanding these behaviors allows SOC analysts to detect similar attack chain
 Boogeyman Investigation
 Boogeyman 2 Investigation
 
-SOC Investigation Repository:
+SOC Investigation Repository
 
 https://github.com/chrisalee27-dotcom/SOC-Level-1-Capstone
 
