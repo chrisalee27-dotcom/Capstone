@@ -1,3 +1,4 @@
+![Screenshot](Screenshots/Thumbnail.png)
 # Boogeyman 2 – SOC Level 1 Capstone
 
 ## Scenario
