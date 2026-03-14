@@ -1,3 +1,5 @@
+
+
 # Boogeyman 3 – SOC Investigation
 
 ## Scenario
